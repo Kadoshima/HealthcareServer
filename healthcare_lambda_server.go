@@ -2,7 +2,9 @@ package main
 
 import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
-	// "github.com/aws/aws-cdk-go/awscdk/v2/awssqs"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigatewayv2"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigatewayv2integrations"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 )
@@ -18,12 +20,24 @@ func NewHealthcareLambdaServerStack(scope constructs.Construct, id string, props
 	}
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
-	// The code that defines your stack goes here
+	lambdaFunction := awslambda.NewFunction(stack, jsii.String("MyFunction"), &awslambda.FunctionProps{
+		Runtime: awslambda.Runtime_PROVIDED_AL2023(),
+		Handler: jsii.String("bootstrap"),
+		Code:    awslambda.Code_FromAsset(jsii.String("lambda/bin"), nil),
+	})
 
-	// example resource
-	// queue := awssqs.NewQueue(stack, jsii.String("HealthcareLambdaServerQueue"), &awssqs.QueueProps{
-	// 	VisibilityTimeout: awscdk.Duration_Seconds(jsii.Number(300)),
-	// })
+	httpApi := awsapigatewayv2.NewHttpApi(stack, jsii.String("MyHttpApi"), &awsapigatewayv2.HttpApiProps{
+		ApiName: jsii.String("MyHttpApi"),
+	})
+
+	// Lambda インテグレーションを作成
+	lambdaIntegration := awsapigatewayv2integrations.NewHttpLambdaIntegration(jsii.String("LambdaIntegration"), lambdaFunction, nil)
+
+	// ルートを作成
+	httpApi.AddRoutes(&awsapigatewayv2.AddRoutesOptions{
+		Path:        jsii.String("/api/location"),
+		Integration: lambdaIntegration,
+	})
 
 	return stack
 }
