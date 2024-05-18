@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigatewayv2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigatewayv2integrations"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsdynamodb"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
@@ -19,6 +20,17 @@ func NewHealthcareLambdaServerStack(scope constructs.Construct, id string, props
 		sprops = props.StackProps
 	}
 	stack := awscdk.NewStack(scope, &id, &sprops)
+
+	//table := としているが後で使うからで、このままではerrorを吐く
+	table := awsdynamodb.NewTable(stack, jsii.String("demo-table"), &awsdynamodb.TableProps{
+		TableName: jsii.String("healthcareApp"),
+		PartitionKey: &awsdynamodb.Attribute{
+			Name: jsii.String("id"),
+			Type: awsdynamodb.AttributeType_STRING,
+		},
+		BillingMode: awsdynamodb.BillingMode_PAY_PER_REQUEST,
+		Stream:      awsdynamodb.StreamViewType_NEW_IMAGE,
+	})
 
 	lambdaFunction := awslambda.NewFunction(stack, jsii.String("MyFunction"), &awslambda.FunctionProps{
 		Runtime: awslambda.Runtime_PROVIDED_AL2023(),
@@ -39,6 +51,9 @@ func NewHealthcareLambdaServerStack(scope constructs.Construct, id string, props
 		Integration: lambdaIntegration,
 		Methods:     &[]awsapigatewayv2.HttpMethod{awsapigatewayv2.HttpMethod_POST},
 	})
+
+	// LambdaにDynamoDBのアクセス権限を付与
+	table.GrantReadWriteData(lambdaFunction)
 
 	return stack
 }
