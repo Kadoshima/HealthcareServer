@@ -37,6 +37,7 @@ func NewHealthcareLambdaServerStack(scope constructs.Construct, id string, props
 	httpApi.AddRoutes(&awsapigatewayv2.AddRoutesOptions{
 		Path:        jsii.String("/api/location"),
 		Integration: lambdaIntegration,
+		Methods:     &[]awsapigatewayv2.HttpMethod{awsapigatewayv2.HttpMethod_POST},
 	})
 
 	return stack
