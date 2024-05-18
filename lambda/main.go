@@ -11,7 +11,7 @@ import (
 
 // リクエストボディの構造体を定義
 type RequestBody struct {
-	Hello string `json:"hello"`
+	Massage string `json:"message"`
 }
 
 // レスポンスボディの構造体を定義
@@ -27,12 +27,12 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
-			Body:       "Invalid request body",
+			Body:       "request body err",
 		}, nil
 	}
 
-	// データを加工（例: "hello" の値を大文字にする）
-	processedData := fmt.Sprintf("Hello, %s!", requestBody.Hello)
+	// データを加工
+	processedData := fmt.Sprintf("yi , %s!", requestBody.Massage)
 
 	// レスポンスボディを作成
 	responseBody := ResponseBody{
